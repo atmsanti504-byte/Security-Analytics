@@ -121,7 +121,7 @@ scores = (failure_counts.reindex(overlap, fill_value=0)
           + deny_counts.reindex(overlap, fill_value=0)).sort_values(ascending=False)
 print("\nIPs with both auth failures and firewall denies (top 5):")
 print(scores.head(5))
-
+ 
 suspect_ip = scores.index[0]
 print(f"\nBuilding incident timeline for suspect IP: {suspect_ip}")
  
@@ -199,6 +199,6 @@ print(classification_report(y_test, pred, digits=3))
 investigation["predicted_malicious"] = model.predict(investigation[FEATURES])
 investigation["malicious_probability"] = model.predict_proba(investigation[FEATURES])[:, 1]
 investigation.sort_values("malicious_probability", ascending=False).head(10).to_csv(
-     "top_10_suspicious_flows.csv", index=False
- )
-print("\nSaved top_10_suspicious_flows.csv")
+    "top_10_suspicious_flows(1).csv", index=False
+)
+print("\nSaved top_10_suspicious_flows(1).csv")
