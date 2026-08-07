@@ -1,0 +1,11 @@
+Python 3.10 or later
+pandas
+matplotlib
+scikit-learn
+
+R option:
+R 4.2 or later
+readr
+dplyr
+ggplot2
+caret
