@@ -122,11 +122,8 @@ scores = (failure_counts.reindex(overlap, fill_value=0)
 print("\nIPs with both auth failures and firewall denies (top 5):")
 print(scores.head(5))
 
-if scores.empty:
-    print("No overlapping suspicious IP's found")
-else:
-    suspect_ip = scores.index[0]
-    print(f"\nBuilding incident timeline for suspect IP: {suspect_ip}")
+suspect_ip = scores.index[0]
+print(f"\nBuilding incident timeline for suspect IP: {suspect_ip}")
  
  
 def build_incident_timeline(ip: str) -> pd.DataFrame:
