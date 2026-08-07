@@ -1,7 +1,0 @@
-user_id,full_name,department,role,assigned_host,normal_start,normal_end,privileged
-nshikongo,Nangula Shikongo,Finance,Revenue Analyst,WKST-FIN-023,07:00,18:00,No
-lamutenya,Lukas Amutenya,Human Resources,HR Officer,WKST-HR-011,07:00,17:30,No
-tkatjiuanjo,Tjipuka Katjiuanjo,Network Operations,Network Engineer,WKST-NOC-004,06:00,22:00,Yes
-mhamukoto,Martha Hamukoto,Customer Service,Customer Service Officer,WKST-CSR-018,07:00,19:00,No
-svc_backup,Backup Service Account,ICT,Service Account,JUMP-ADMIN-01,00:00,23:59,Yes
-svc_siem,SIEM Collector,Security,Service Account,SIEM-01,00:00,23:59,Yes
