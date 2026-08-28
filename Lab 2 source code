@@ -1,0 +1,634 @@
+"""SAS821S Lab 2 starter analysis.
+
+Run from the 02_Data directory. Complete the TODO sections and keep the
+analysis reproducible. Do not modify the original CSV files.
+"""
+from pathlib import Path
+from collections import defaultdict
+from datetime import timedelta
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+
+DATA = Path(".").resolve()
+
+employees = pd.read_csv(DATA / "ofs_employee_directory.csv")
+assets = pd.read_csv(DATA / "ofs_asset_inventory.csv")
+email = pd.read_csv(DATA / "ofs_email_gateway_logs.csv", parse_dates=["timestamp"])
+vpn = pd.read_csv(DATA / "ofs_vpn_authentication_logs.csv", parse_dates=["timestamp"])
+endpoint = pd.read_csv(DATA / "ofs_endpoint_process_logs.csv", parse_dates=["timestamp"])
+files = pd.read_csv(DATA / "ofs_file_access_logs.csv", parse_dates=["timestamp"])
+proxy = pd.read_csv(DATA / "ofs_proxy_dlp_logs.csv", parse_dates=["timestamp"])
+intel = pd.read_csv(DATA / "ofs_threat_intelligence.csv", parse_dates=["first_seen", "last_updated"])
+training = pd.read_csv(DATA / "ofs_access_session_training.csv", parse_dates=["session_start"])
+investigation = pd.read_csv(DATA / "ofs_access_session_investigation.csv", parse_dates=["session_start"])
+#martix = pd.read_csv(DATA / "ofs_access_policy_matrix.csv", parse_dates=["timestamp"])
+
+print("Row counts")
+for name, frame in {
+    "email": email, "vpn": vpn, "endpoint": endpoint, "files": files,
+    "proxy": proxy, "intel": intel, "training": training,
+    "investigation": investigation,
+}.items():
+    print(f"{name:15s} {len(frame):5d}")
+
+
+
+# TODO 1: derive hour, weekend and off-hours variables where appropriate.
+time_datasets = {
+    "email": email,
+    "vpn": vpn,
+    "endpoint": endpoint,
+    "files": files,
+    "proxy": proxy
+}
+# Recreate time-based fields
+for name, df in time_datasets.items():
+    df["hour"] = df["timestamp"].dt.hour
+    df["weekend"] = df["timestamp"].dt.dayofweek >= 5
+    df["off_hours"] = (df["hour"] < 6) | (df["hour"] >= 20)
+
+## Create useful derived fields such as hour, weekend, off-hours, new geography/device, download MB, upload MB,
+## resource sensitivity and role mismatch.
+
+##new geography and device
+user_common_country = vpn.groupby("user_id")["country"].transform(
+    lambda x: x.mode().iloc[0] if not x.mode().empty else None
+)
+
+user_common_device = vpn.groupby("user_id")["device_id"].transform(
+    lambda x: x.mode().iloc[0] if not x.mode().empty else None
+)
+
+vpn["new_geography"] = vpn["country"] != user_common_country
+vpn["new_device"] = vpn["device_id"] != user_common_device
+
+##download and upload volumes
+files["download_mb"] = files["bytes_transferred"] / (1024 ** 2)
+proxy["upload_mb"] = proxy["bytes_out"] / (1024 ** 2)
+
+##resource sensitivity
+files["resource_sensitivity"] = files["sensitivity"].astype(str).str.lower()
+
+##role mismatch
+files = files.merge(
+    employees[[
+        "user_id",
+        "department",
+        "role",
+        "permitted_resource_groups"
+    ]],
+    on="user_id",
+    how="left"
+)
+
+def check_role_mismatch(row):
+    if pd.isna(row["permitted_resource_groups"]):
+        return True
+
+    permitted_groups = [
+        group.strip().lower()
+        for group in str(row["permitted_resource_groups"]).split(";")
+    ]
+
+    return str(row["resource_group"]).lower() not in permitted_groups
+
+
+files["role_mismatch"] = files.apply(check_role_mismatch, axis=1)
+
+##session derived fields
+for df in [training, investigation]:
+    df["hour"] = df["session_start"].dt.hour
+    df["weekend"] = df["session_start"].dt.dayofweek >= 5
+    numeric_columns = [
+        "failed_logins_30m",
+        "mfa_denials",
+        "mfa_approvals",
+        "unique_resources",
+        "sensitive_resources",
+        "denied_accesses",
+        "files_read",
+        "bytes_downloaded_mb",
+        "data_upload_mb",
+        "process_risk_score",
+        "destination_risk_score",
+        "peer_deviation_score",
+        "impossible_travel",
+        "privilege_mismatch"
+    ]
+
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+print("\nDerived fields completed.")
+print("\nVPN preview:")
+
+print(vpn[[
+    "user_id", "hour", "weekend",
+    "off_hours", "new_geography", "new_device"
+]].head())
+
+print("\nFile access preview:")
+print(files[[
+    "user_id", "download_mb",
+    "resource_sensitivity", "role_mismatch"
+]].head())
+
+print("\nProxy/DLP preview:")
+print(proxy[[
+    "user_id", "upload_mb", "action"
+]].head())
+
+# TODO 2: establish peer-group baselines for access and download behaviour.
+
+#Baseline (individual and group)
+individual_baseline = (
+    files.groupby("user_id")
+    .agg(
+        access_events=("event_id", "count"),
+        total_download_mb=("download_mb", "sum"),
+        average_download_mb=("download_mb", "mean"),
+        sensitive_accesses=(
+            "resource_sensitivity",
+            lambda x: x.isin(["confidential", "restricted"]).sum()
+        ),
+        off_hours_accesses=("off_hours", "sum"),
+        role_mismatches=("role_mismatch", "sum")
+    )
+    .reset_index()
+    .sort_values("total_download_mb", ascending=False)
+)
+
+print("INDIVIDUAL USER ACCESS BASELINE")
+print(individual_baseline)
+
+peer_baseline = (
+    files.groupby("department")
+    .agg(
+        total_access_events=("event_id", "count"),
+        average_download_mb=("download_mb", "mean"),
+        total_sensitive_accesses=(
+            "resource_sensitivity",
+            lambda x: x.isin(["confidential", "restricted"]).sum()
+        ),
+        average_off_hours_access=("off_hours", "mean"),
+        total_role_mismatches=("role_mismatch", "sum")
+    )
+    .reset_index()
+    .sort_values("average_download_mb", ascending=False)
+)
+
+print("PEER-GROUP BASELINE BY DEPARTMENT")
+print(peer_baseline)
+
+
+# TODO 3: create at least three visualisations that answer investigation questions.
+
+#Failed auth by department
+failed_login_summary = (
+    training.groupby("department", as_index=False)["failed_logins_30m"]
+    .mean()
+    .sort_values("failed_logins_30m", ascending=False)
+)
+
+plt.figure(figsize=(10, 6))
+plt.bar(
+    failed_login_summary["department"],
+    failed_login_summary["failed_logins_30m"]
+)
+plt.xlabel("Department")
+plt.ylabel("Average Failed Logins in 30 Minutes")
+plt.title("Average Failed Authentication Activity by Department")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+#External upload volume by user
+upload_summary = (
+    proxy.groupby("user_id", as_index=False)["upload_mb"]
+    .sum()
+    .sort_values("upload_mb", ascending=False)
+)
+
+print(upload_summary.head(10))
+
+plt.figure(figsize=(10, 6))
+plt.bar(
+    upload_summary["user_id"],
+    upload_summary["upload_mb"]
+)
+
+plt.xlabel("User ID")
+plt.ylabel("Total external upload volume (MB)")
+plt.title("Total External Upload Volume by User")
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
+
+# rule-based access risk scores
+risk_sessions = investigation.copy()
+
+numeric_cols = [
+    "failed_logins_30m",
+    "mfa_denials",
+    "sensitive_resources",
+    "bytes_downloaded_mb",
+    "data_upload_mb",
+    "new_device",
+    "off_hours",
+    "impossible_travel",
+    "privilege_mismatch"
+]
+
+for col in numeric_cols:
+    risk_sessions[col] = pd.to_numeric(
+        risk_sessions[col],
+        errors="coerce"
+    ).fillna(0)
+
+
+risk_sessions["risk_failed_logins"] = (
+    risk_sessions["failed_logins_30m"] >= 3
+).astype(int)
+
+risk_sessions["risk_mfa_denials"] = (
+    risk_sessions["mfa_denials"] >= 2
+).astype(int)
+
+risk_sessions["risk_sensitive_access"] = (
+    risk_sessions["sensitive_resources"] >= 3
+).astype(int)
+
+risk_sessions["risk_large_download"] = (
+    risk_sessions["bytes_downloaded_mb"] >= 10
+).astype(int)
+
+risk_sessions["risk_large_upload"] = (
+    risk_sessions["data_upload_mb"] >= 10
+).astype(int)
+
+##Contextual anomaly indicator
+risk_sessions["risk_context_anomaly"] = (
+    (risk_sessions["new_device"] > 0) |
+    (risk_sessions["off_hours"] > 0) |
+    (risk_sessions["impossible_travel"] > 0) |
+    (risk_sessions["privilege_mismatch"] > 0)
+).astype(int)
+
+##total risk score
+risk_indicator_cols = [
+    "risk_failed_logins",
+    "risk_mfa_denials",
+    "risk_sensitive_access",
+    "risk_large_download",
+    "risk_large_upload",
+    "risk_context_anomaly"
+]
+
+risk_sessions["risk_score"] = risk_sessions[
+    risk_indicator_cols
+].sum(axis=1)
+
+##risk level
+def assign_risk_level(score):
+    if score >= 4:
+        return "High"
+    elif score >= 2:
+        return "Medium"
+    return "Low"
+
+
+risk_sessions["risk_level"] = risk_sessions["risk_score"].apply(
+    assign_risk_level
+)
+
+highest_risk_sessions = risk_sessions.sort_values(
+    "risk_score",
+    ascending=False
+)
+
+print("\nTOP 15 HIGHEST-RISK SESSIONS")
+print(
+    highest_risk_sessions[
+        [
+            "session_id",
+            "user_id",
+            "department",
+            "risk_score",
+            "risk_level",
+            "risk_failed_logins",
+            "risk_mfa_denials",
+            "risk_sensitive_access",
+            "risk_large_download",
+            "risk_large_upload",
+            "risk_context_anomaly"
+        ]
+    ].head(15).to_string(index=False)
+)
+
+highest_risk_users = (
+    risk_sessions.groupby("user_id")
+    .agg(
+        sessions=("session_id", "count"),
+        total_risk_score=("risk_score", "sum"),
+        max_session_risk=("risk_score", "max"),
+        high_risk_sessions=(
+            "risk_level",
+            lambda x: (x == "High").sum()
+        )
+    )
+    .reset_index()
+    .sort_values(
+        ["total_risk_score", "max_session_risk"],
+        ascending=False
+    )
+)
+
+print("\nHIGHEST-RISK USERS")
+print(highest_risk_users.head(15).to_string(index=False))
+print("\nRISK LEVEL DISTRIBUTION")
+print(risk_sessions["risk_level"].value_counts())
+
+# TODO 4: correlate event IDs across the incident timeline.
+timeline_rows = []
+
+for _, row in email.iterrows():
+    timeline_rows.append({
+        "event_id": row["event_id"],
+        "timestamp": row["timestamp"],
+        "evidence_source": "Email Gateway",
+        "observed_action": (
+            f"Email from {row['sender']} to {row['recipient']} | "
+            f"Subject: {row['subject']} | Verdict: {row['verdict']}"
+        ),
+        "analytical_interpretation": (
+            f"Email delivery and gateway decision should be correlated "
+            f"with subsequent authentication and endpoint activity."
+        )
+    })
+
+for _, row in vpn.iterrows():
+    timeline_rows.append({
+        "event_id": row["event_id"],
+        "timestamp": row["timestamp"],
+        "evidence_source": "VPN Authentication",
+        "observed_action": (
+            f"User {row['user_id']} login result: {row['result']} | "
+            f"MFA: {row['mfa_result']} | "
+            f"Location: {row['city']}, {row['country']} | "
+            f"Device: {row['device_id']}"
+        ),
+        "analytical_interpretation": (
+            "Authentication and geography evidence requiring correlation "
+            "with normal user behaviour and subsequent activity."
+        )
+    })
+
+for _, row in endpoint.iterrows():
+    timeline_rows.append({
+        "event_id": row["event_id"],
+        "timestamp": row["timestamp"],
+        "evidence_source": "Endpoint",
+        "observed_action": (
+            f"User {row['user_id']} executed {row['process_name']} "
+            f"on {row['asset_id']} | Risk: {row['risk_level']} | "
+            f"EDR action: {row['edr_action']}"
+        ),
+        "analytical_interpretation": (
+            "Process execution should be correlated with phishing, "
+            "archive creation and possible data collection activity."
+        )
+    })
+
+for _, row in files.iterrows():
+    timeline_rows.append({
+        "event_id": row["event_id"],
+        "timestamp": row["timestamp"],
+        "evidence_source": "File Access",
+        "observed_action": (
+            f"User {row['user_id']} {row['action']} {row['resource_path']} | "
+            f"Sensitivity: {row['sensitivity']} | "
+            f"Status: {row['status']} | "
+            f"Bytes: {row['bytes_transferred']}"
+        ),
+        "analytical_interpretation": (
+            "Resource access should be assessed against user role, "
+            "authorisation and data-collection behaviour."
+        )
+    })
+
+for _, row in proxy.iterrows():
+    timeline_rows.append({
+        "event_id": row["event_id"],
+        "timestamp": row["timestamp"],
+        "evidence_source": "Proxy/DLP",
+        "observed_action": (
+            f"User {row['user_id']} transferred {row['bytes_out']} bytes "
+            f"to {row['destination_domain']} | "
+            f"Action: {row['action']} | File: {row['file_name']}"
+        ),
+        "analytical_interpretation": (
+            "External transfer requiring correlation with collected data "
+            "and DLP enforcement outcome."
+        )
+    })
+
+incident_timeline = pd.DataFrame(timeline_rows)
+
+incident_timeline = incident_timeline.sort_values(
+    "timestamp"
+).reset_index(drop=True)
+
+## users associated with high-risk sessions 
+high_risk_users = highest_risk_sessions[
+    highest_risk_sessions["risk_level"] == "High"
+]["user_id"].unique()
+
+# collect timestamps from high-risk sessions
+high_risk_times = highest_risk_sessions[
+    highest_risk_sessions["risk_level"] == "High"
+]["session_start"]
+
+incident_start = high_risk_times.min() - pd.Timedelta(hours=24)
+incident_end = high_risk_times.max() + pd.Timedelta(hours=24)
+
+focused_timeline = incident_timeline[
+    (incident_timeline["timestamp"] >= incident_start) &
+    (incident_timeline["timestamp"] <= incident_end)
+].copy()
+
+user_mask = focused_timeline["observed_action"].str.contains(
+    "|".join(high_risk_users),
+    case=False,
+    na=False,
+    regex=True
+)
+
+focused_timeline = focused_timeline[
+    user_mask
+].sort_values("timestamp")
+
+focused_timeline.to_csv(
+    "focused_incident_timeline.csv",
+    index=False
+)
+
+timeline_plot = focused_timeline.copy()
+
+
+def assign_severity(row):
+    text = (
+        str(row["observed_action"]) + " " +
+        str(row["analytical_interpretation"])
+    ).lower()
+
+    if "critical" in text:
+        return 4, "Critical Risk"
+
+    if "high" in text:
+        return 3, "High Risk"
+
+    if (
+        "mfa" in text and
+        ("deny" in text or "denial" in text)
+    ):
+        return 4, "Critical Risk"
+
+    if any(keyword in text for keyword in [
+        "mshta",
+        "powershell",
+        "rundll32",
+        "update.hta"
+    ]):
+        return 3, "High Risk"
+
+    if any(keyword in text for keyword in [
+        "restricted",
+        "confidential",
+        "sensitive",
+        "download",
+        "upload"
+    ]):
+        return 2, "Medium Risk"
+
+    return 0, "Baseline"
+
+
+severity_results = timeline_plot.apply(
+    assign_severity,
+    axis=1
+)
+
+timeline_plot["severity"] = [
+    result[0] for result in severity_results
+]
+
+timeline_plot["severity_label"] = [
+    result[1] for result in severity_results
+]
+
+def create_label(row):
+    text = str(row["observed_action"]).lower()
+
+    if row["severity"] == 0:
+        return ""
+
+    if "mshta" in text:
+        return "Suspicious Payload (mshta)"
+    elif "powershell" in text:
+        return "PowerShell Activity"
+    elif "rundll32" in text:
+        return "PowerShell/rundll32"
+    elif "mfa" in text:
+        return "Suspicious MFA Activity"
+    elif "upload" in text:
+        return "External Data Transfer"
+    elif "restricted" in text or "confidential" in text:
+        return "Sensitive Resource Access"
+
+    return row["evidence_source"]
+
+
+timeline_plot["event_label"] = timeline_plot.apply(
+    create_label,
+    axis=1
+)
+
+plt.figure(figsize=(16, 7))
+
+plt.plot(
+    timeline_plot["timestamp"],
+    timeline_plot["severity"],
+    marker="o",
+    linewidth=1.5,
+    label="Incident Severity Trace"
+)
+
+plt.axhline(y=0, linewidth=1)
+
+for _, row in timeline_plot.iterrows():
+    if row["severity"] >= 3:
+        plt.annotate(
+            row["event_label"],
+            (row["timestamp"], row["severity"]),
+            xytext=(0, 12),
+            textcoords="offset points",
+            ha="center",
+            fontsize=8
+        )
+
+plt.yticks(
+    [0, 1, 2, 3, 4],
+    [
+        "0 - Baseline",
+        "1 - Low Risk",
+        "2 - Medium Risk",
+        "3 - High Risk",
+        "4 - Critical Risk"
+    ]
+)
+
+plt.xlabel("Chronological Event Timeline")
+plt.ylabel("Risk / Severity Level")
+plt.title("Security Cyber Incident Threat Escalation Timeline")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+top_30_timeline = focused_timeline.sort_values(
+    "timestamp"
+).head(30)
+
+print("HIGH-RISK USERS IDENTIFIED:", list(high_risk_users))
+print("INCIDENT WINDOW:", incident_start, "to", incident_end)
+print("FOCUSED TIMELINE EVENTS:", len(focused_timeline))
+
+print("\nTOP 30 INCIDENT TIMELINE EVENTS:")
+print(
+    top_30_timeline[
+        [
+            "event_id",
+            "timestamp",
+            "evidence_source",
+            "observed_action",
+            "analytical_interpretation"
+        ]
+    ].to_string(index=False)
+)
+
+# TODO 5: train and evaluate an access-session classifier.
+
+
+# TODO 6: score the unlabelled investigation sessions and export the top 15.
+
+# Example: total downloaded megabytes by user
+files["download_mb"] = files["bytes_transferred"] / (1024 ** 2)
+summary = files.groupby("user_id", as_index=False)["download_mb"].sum().sort_values("download_mb", ascending=False)
+print(summary.head(10))
+
+# Replace this example with a labelled, interpreted visualisation.
+summary.head(10).plot.bar(x="user_id", y="download_mb", legend=False)
+plt.ylabel("Downloaded MB")
+plt.title("Downloaded volume by user")
+plt.tight_layout()
+plt.show()
