@@ -9,6 +9,11 @@ from datetime import timedelta
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+)
 
 DATA = Path(".").resolve()
 
@@ -617,6 +622,111 @@ print(
 )
 
 # TODO 5: train and evaluate an access-session classifier.
+
+features = [
+    "new_device",
+    "off_hours",
+    "failed_logins_30m",
+    "mfa_denials",
+    "mfa_approvals",
+    "unique_resources",
+    "sensitive_resources",
+    "denied_accesses",
+    "files_read",
+    "bytes_downloaded_mb",
+    "data_upload_mb",
+    "process_risk_score",
+    "destination_risk_score",
+    "peer_deviation_score",
+    "impossible_travel",
+    "privilege_mismatch"
+]
+
+X = training[features].copy()
+y = training["label"].copy()
+X = X.apply(pd.to_numeric, errors="coerce").fillna(0)
+
+##70/30 train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.30,
+    random_state=42,
+    stratify=y
+)
+
+print("Training samples:", len(X_train))
+print("Testing samples:", len(X_test))
+
+print("\nTraining class distribution:")
+print(y_train.value_counts())
+
+print("\nTesting class distribution:")
+print(y_test.value_counts())
+
+##training RFC
+model = RandomForestClassifier(
+    n_estimators=200,
+    random_state=42,
+    class_weight="balanced"
+)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+##model eval
+cm = confusion_matrix(y_test, y_pred)
+
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, zero_division=0)
+recall = recall_score(y_test, y_pred, zero_division=0)
+f1 = f1_score(y_test, y_pred, zero_division=0)
+
+print("\nCONFUSION MATRIX")
+print(cm)
+
+print("\nMODEL PERFORMANCE")
+print(f"Accuracy:  {accuracy:.4f}")
+print(f"Precision: {precision:.4f}")
+print(f"Recall:    {recall:.4f}")
+print(f"F1-score:  {f1:.4f}")
+
+tn, fp, fn, tp = cm.ravel()
+false_negative_rate = fn / (fn + tp) if (fn + tp) > 0 else 0
+print(f"False-negative rate: {false_negative_rate:.4f}")
+
+feature_importance = pd.DataFrame({
+    "feature": features,
+    "importance": model.feature_importances_
+}).sort_values(
+    "importance",
+    ascending=False
+)
+print("\nTOP FEATURE IMPORTANCES")
+print(feature_importance.to_string(index=False))
+
+plt.figure(figsize=(6, 5))
+
+plt.imshow(cm)
+
+plt.title("Access-Session Classifier Confusion Matrix")
+plt.xlabel("Predicted Label")
+plt.ylabel("Actual Label")
+
+plt.xticks([0, 1], ["Normal", "Suspicious"])
+plt.yticks([0, 1], ["Normal", "Suspicious"])
+
+for i in range(2):
+    for j in range(2):
+        plt.text(
+            j,
+            i,
+            cm[i, j],
+            ha="center",
+            va="center"
+        )
+
+plt.tight_layout()
+plt.show()
 
 
 # TODO 6: score the unlabelled investigation sessions and export the top 15.
