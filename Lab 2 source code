@@ -188,6 +188,17 @@ print(peer_baseline)
 
 
 # TODO 3: create at least three visualisations that answer investigation questions.
+# Example: total downloaded megabytes by user
+files["download_mb"] = files["bytes_transferred"] / (1024 ** 2)
+summary = files.groupby("user_id", as_index=False)["download_mb"].sum().sort_values("download_mb", ascending=False)
+print(summary.head(10))
+
+# Replace this example with a labelled, interpreted visualisation.
+summary.head(10).plot.bar(x="user_id", y="download_mb", legend=False)
+plt.ylabel("Downloaded MB")
+plt.title("Downloaded volume by user")
+plt.tight_layout()
+plt.show()
 
 #Failed auth by department
 failed_login_summary = (
@@ -731,14 +742,5 @@ plt.show()
 
 # TODO 6: score the unlabelled investigation sessions and export the top 15.
 
-# Example: total downloaded megabytes by user
-files["download_mb"] = files["bytes_transferred"] / (1024 ** 2)
-summary = files.groupby("user_id", as_index=False)["download_mb"].sum().sort_values("download_mb", ascending=False)
-print(summary.head(10))
 
-# Replace this example with a labelled, interpreted visualisation.
-summary.head(10).plot.bar(x="user_id", y="download_mb", legend=False)
-plt.ylabel("Downloaded MB")
-plt.title("Downloaded volume by user")
-plt.tight_layout()
-plt.show()
+
