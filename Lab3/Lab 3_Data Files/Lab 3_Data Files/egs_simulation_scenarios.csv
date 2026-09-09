@@ -1,0 +1,6 @@
+scenario_id,scenario_name,patch_factor,segmentation_factor,isolation_delay_steps,post_detection_transmission_factor,description
+S0,Current controls,1.0,1.0,99,1.0,"Existing patching, segmentation and detection posture"
+S1,Patch vendor path,0.42,1.0,99,1.0,"Patch vendor laptop, VPN gateway and vendor broker before access"
+S2,Strengthen OT segmentation,1.0,0.18,99,1.0,Restrict DMZ-to-OT and OT lateral paths to approved one-way flows
+S3,Rapid EDR isolation,1.0,1.0,2,0.18,Isolate compromised Windows assets within two simulation steps
+S4,Combined controls,0.42,0.18,2,0.18,"Patch vendor path, strengthen segmentation and isolate rapidly"

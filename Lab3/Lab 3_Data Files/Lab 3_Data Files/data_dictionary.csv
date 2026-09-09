@@ -1,0 +1,34 @@
+file,field,description,data_type,example
+egs_security_event_logs.csv,event_id,Unique event identifier used for evidence traceability,string,EVT01234
+egs_security_event_logs.csv,timestamp,Namibia local timestamp (UTC+2),datetime,2026-10-17 20:18:02
+egs_security_event_logs.csv,source_type,Telemetry source,category,OT_IDS
+egs_security_event_logs.csv,source_asset,Originating asset,string,ENG-WS-01
+egs_security_event_logs.csv,destination_asset,Target asset or address,string,PLC-SUB-01
+egs_security_event_logs.csv,user_id,Associated identity,string,vendor_maint
+egs_security_event_logs.csv,event_type,Normalised activity type,category,MODBUS_WRITE_ATTEMPT
+egs_security_event_logs.csv,action,Control disposition,category,BLOCK
+egs_security_event_logs.csv,severity,Recorded severity,category,Critical
+egs_security_event_logs.csv,indicator,"Domain, IP, hash, protocol or entity",string,desert-sync.example
+egs_security_event_logs.csv,details,Human-readable event context,text,Attempted register write blocked
+egs_network_topology_edges.csv,source_asset,Directed graph source node,string,OT-JUMP-01
+egs_network_topology_edges.csv,target_asset,Directed graph target node,string,ENG-WS-01
+egs_network_topology_edges.csv,base_transmission_probability,Baseline propagation probability per attempt,float,0.48
+egs_network_topology_edges.csv,existing_control,Current control on the connection,text,OT firewall;PAM
+egs_network_topology_edges.csv,policy_status,Whether the flow is allowed or restricted,category,Allowed
+egs_host_security_posture.csv,susceptibility,Normalised host susceptibility used in the simulation,float,0.58
+egs_host_security_posture.csv,vulnerability_score,Synthetic 0–10 vulnerability score,float,5.9
+egs_host_security_posture.csv,patch_age_days,Days since last relevant patch,integer,45
+egs_host_security_posture.csv,edr_present,Whether endpoint monitoring is present,category,Yes
+egs_text_training.csv,report_text,Unstructured intelligence report text,text,Campaign targets industrial operators...
+egs_text_training.csv,relevant_label,"Historical analyst judgement: 1 if operationally relevant to EGS, otherwise 0",integer,1
+egs_daily_risk_training.csv,failed_remote_logins,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,new_external_ips,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,suspicious_dns_queries,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,critical_vulnerabilities,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,mean_patch_age_days,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,high_severity_edr_alerts,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,ot_scan_attempts,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,high_relevance_threat_reports,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,vendor_access_sessions,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,after_hours_admin_actions,Daily security indicator used for predictive risk modelling,numeric,8
+egs_daily_risk_training.csv,incident_within_7d,Target: whether a material incident occurs within seven days,integer,1

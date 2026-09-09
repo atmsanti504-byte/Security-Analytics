@@ -1,0 +1,25 @@
+asset_id,asset_name,zone,asset_type,business_owner,criticality,ip_address,business_function,remote_access_allowed
+VENDOR-LT-07,Vendor engineering laptop,Vendor,Engineering laptop,Namsys Controls,High,172.20.7.17,Remote maintenance,Yes
+VPN-GW-01,Remote access gateway,DMZ,VPN gateway,Cyber Operations,Critical,10.50.0.10,Remote access,Yes
+VENDOR-DMZ-01,Vendor access broker,DMZ,Windows jump host,OT Operations,Critical,10.50.10.20,Vendor session brokering,Yes
+IDP-01,Identity provider,IT,Identity server,ICT,Critical,10.20.0.15,Authentication,No
+DNS-01,Corporate DNS,IT,DNS server,ICT,High,10.20.0.53,Name resolution,No
+MAIL-GW-01,Email gateway,IT,Security gateway,ICT,High,10.20.0.25,Email filtering,No
+SOC-SIEM-01,Security analytics platform,IT,SIEM server,Cyber Operations,Critical,10.20.10.10,Monitoring and analytics,No
+FILE-ENG-01,Engineering file server,IT,Windows file server,Engineering,High,10.20.30.12,Engineering documents,No
+ERP-01,Corporate ERP,IT,Application server,Finance,High,10.20.40.20,Corporate operations,No
+BACKUP-01,Enterprise backup server,IT,Backup server,ICT,Critical,10.20.50.10,Recovery,No
+OT-JUMP-01,OT privileged jump server,OT-DMZ,Windows jump host,OT Operations,Critical,10.60.0.10,Controlled OT access,Yes
+HIST-REPLICA-01,Historian replica,OT-DMZ,Historian replica,OT Operations,High,10.60.0.20,Read-only OT data replica,No
+ENG-WS-01,Primary engineering workstation,OT,Engineering workstation,Protection Engineering,Critical,10.60.10.11,PLC engineering,No
+ENG-WS-02,Secondary engineering workstation,OT,Engineering workstation,Protection Engineering,High,10.60.10.12,PLC engineering,No
+HMI-01,Central operations HMI,OT,HMI server,Control Room,Critical,10.60.20.11,Grid monitoring and control,No
+HMI-02,Backup operations HMI,OT,HMI server,Control Room,Critical,10.60.20.12,Grid monitoring and control,No
+HIST-01,Operational historian,OT,Historian server,Control Room,Critical,10.60.30.10,Operational telemetry,No
+OPC-01,OT data integration server,OT,OPC server,OT Operations,Critical,10.60.30.20,Control data exchange,No
+PLC-SUB-01,Walvis Bay substation PLC,OT,PLC,Protection Engineering,Critical,10.60.40.11,Substation automation,No
+PLC-SUB-02,Swakopmund substation PLC,OT,PLC,Protection Engineering,Critical,10.60.40.12,Substation automation,No
+PLC-WIND-01,Wind generation PLC A,OT,PLC,Generation,Critical,10.60.41.11,Wind generation control,No
+PLC-WIND-02,Wind generation PLC B,OT,PLC,Generation,Critical,10.60.41.12,Wind generation control,No
+RTU-DIST-01,Distribution RTU,OT,RTU,Distribution,High,10.60.42.11,Distribution telemetry,No
+SAFETY-PLC-01,Safety instrumented PLC,Safety,Safety PLC,Generation,Critical,10.70.10.10,Safety shutdown,No

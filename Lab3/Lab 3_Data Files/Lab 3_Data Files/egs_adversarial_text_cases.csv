@@ -1,0 +1,6 @@
+case_id,original_text,modified_text,evasion_technique
+ATX01,Kalahari Jackal targets energy utilities using Modbus scanning and Sandstorm Loader command-and-control at desert-sync.example.,Kalahari Jackal targets power organisations using m0dbus discovery and a maintenance utility communicating with desert[.]sync[.]example.,character substitution and defanged indicator
+ATX02,Compromised vendor credentials enabled RDP access to an OT jump server followed by PowerShell execution.,A third-party account opened a remote desktop session to an operations relay and launched a script interpreter.,semantic substitution
+ATX03,Ransomware actors are targeting electricity operators through credential phishing and remote service abuse.,An extortion group is approaching power providers through identity lures and approved remote tools.,keyword removal
+ATX04,DNS tunnelling from an engineering workstation may indicate command-and-control activity.,Repeated name-resolution traffic from a technical workstation may represent external coordination.,euphemistic wording
+ATX05,Threat actors attempted Modbus register writes against a substation PLC.,An unauthorised party sent industrial function sixteen requests to a field controller.,protocol/function paraphrase

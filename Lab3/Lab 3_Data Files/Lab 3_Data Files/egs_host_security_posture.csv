@@ -1,0 +1,25 @@
+asset_id,operating_system,vulnerability_score,critical_cve_count,patch_age_days,edr_present,application_allowlisting,backup_status,susceptibility,notes
+VENDOR-LT-07,Windows 10,8.7,4,143,No,No,Unknown,0.92,Vendor-managed; overdue patching
+VPN-GW-01,Appliance,7.1,2,74,N/A,N/A,Daily config,0.74,Public-facing remote access gateway
+VENDOR-DMZ-01,Windows Server 2019,6.4,2,61,Yes,Partial,Daily,0.68,Vendor session broker
+IDP-01,Windows Server 2022,4.6,0,30,Yes,Yes,Daily,0.46,Managed corporate asset
+DNS-01,Windows Server 2022,5.4,1,44,Yes,Yes,Daily,0.54,Managed corporate asset
+MAIL-GW-01,Windows 11,2.3,0,29,Yes,Yes,Daily,0.23,Managed corporate asset
+SOC-SIEM-01,Windows Server 2022,2.6,0,54,Yes,Yes,Daily,0.26,Managed corporate asset
+FILE-ENG-01,Windows Server 2022,2.6,0,47,Yes,Yes,Daily,0.26,Managed corporate asset
+ERP-01,Windows Server 2022,3.9,0,35,Yes,Yes,Daily,0.39,Managed corporate asset
+BACKUP-01,Windows Server 2022,3.1,0,15,Yes,Yes,Daily,0.31,Managed corporate asset
+OT-JUMP-01,Windows Server 2019,5.9,1,45,Yes,Partial,Daily,0.58,Privileged OT access point
+HIST-REPLICA-01,Windows Server 2019,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+ENG-WS-01,Windows 10,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+ENG-WS-02,Windows 10,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+HMI-01,Windows Server 2019,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+HMI-02,Windows Server 2019,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+HIST-01,Windows Server 2019,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+OPC-01,Windows Server 2019,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+PLC-SUB-01,Embedded RTOS,6.2,1,365,No,N/A,Configuration export,0.64,Legacy firmware; compensating controls
+PLC-SUB-02,Embedded RTOS,6.2,1,365,No,N/A,Configuration export,0.64,Legacy firmware; compensating controls
+PLC-WIND-01,Embedded RTOS,6.2,1,365,No,N/A,Configuration export,0.64,Legacy firmware; compensating controls
+PLC-WIND-02,Embedded RTOS,6.2,1,365,No,N/A,Configuration export,0.64,Legacy firmware; compensating controls
+RTU-DIST-01,Windows 10,5.0,1,52,Yes,Partial,Daily,0.52,OT change window constraints
+SAFETY-PLC-01,Safety RTOS,4.0,0,210,No,N/A,Offline config,0.4,Strong physical and network isolation

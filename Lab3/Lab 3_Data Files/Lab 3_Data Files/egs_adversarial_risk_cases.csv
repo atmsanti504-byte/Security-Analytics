@@ -1,0 +1,6 @@
+case_id,variant,failed_remote_logins,new_external_ips,suspicious_dns_queries,critical_vulnerabilities,mean_patch_age_days,high_severity_edr_alerts,ot_scan_attempts,high_relevance_threat_reports,vendor_access_sessions,after_hours_admin_actions
+AR01,baseline_attack,42,8,36,12,96.0,10,12,8,9,8
+AR02,low_and_slow,12,3,8,12,96.0,3,2,5,9,3
+AR03,distributed_sources,18,2,18,12,96.0,6,5,6,9,5
+AR04,living_off_the_land,28,5,25,12,96.0,2,8,7,9,6
+AR05,suppressed_telemetry,24,4,5,12,96.0,1,1,6,9,4

@@ -1,0 +1,31 @@
+source_asset,target_asset,protocol,source_zone,target_zone,base_transmission_probability,existing_control,policy_status
+VENDOR-LT-07,VPN-GW-01,TLS/VPN,Vendor,DMZ,0.72,MFA;device posture,Allowed
+VPN-GW-01,VENDOR-DMZ-01,RDP,DMZ,DMZ,0.58,Session broker,Allowed
+VPN-GW-01,IDP-01,LDAPS,DMZ,IT,0.34,Firewall;service account,Allowed
+VENDOR-DMZ-01,FILE-ENG-01,SMB,DMZ,IT,0.42,Firewall;RBAC,Allowed
+VENDOR-DMZ-01,OT-JUMP-01,RDP,DMZ,OT-DMZ,0.52,Firewall;MFA;approval,Allowed
+OT-JUMP-01,ENG-WS-01,RDP,OT-DMZ,OT,0.48,OT firewall;PAM,Allowed
+OT-JUMP-01,ENG-WS-02,RDP,OT-DMZ,OT,0.42,OT firewall;PAM,Allowed
+OT-JUMP-01,HIST-REPLICA-01,HTTPS,OT-DMZ,OT-DMZ,0.34,Read-only access,Allowed
+OT-JUMP-01,HIST-01,HTTPS,OT-DMZ,OT,0.35,OT firewall,Allowed
+ENG-WS-01,OPC-01,OPC-UA,OT,OT,0.5,Allowlist;OT IDS,Allowed
+ENG-WS-02,OPC-01,OPC-UA,OT,OT,0.45,Allowlist;OT IDS,Allowed
+ENG-WS-01,PLC-SUB-01,Modbus/TCP,OT,OT,0.38,Engineering ACL;OT IDS,Allowed
+ENG-WS-01,PLC-SUB-02,Modbus/TCP,OT,OT,0.36,Engineering ACL;OT IDS,Allowed
+ENG-WS-02,PLC-WIND-01,DNP3,OT,OT,0.37,Engineering ACL;OT IDS,Allowed
+ENG-WS-02,PLC-WIND-02,DNP3,OT,OT,0.35,Engineering ACL;OT IDS,Allowed
+OPC-01,HMI-01,OPC-UA,OT,OT,0.34,OT firewall,Allowed
+OPC-01,HMI-02,OPC-UA,OT,OT,0.3,OT firewall,Allowed
+OPC-01,HIST-01,OPC-UA,OT,OT,0.38,OT firewall,Allowed
+HMI-01,PLC-SUB-01,Modbus/TCP,OT,OT,0.31,Control ACL,Allowed
+HMI-01,PLC-SUB-02,Modbus/TCP,OT,OT,0.31,Control ACL,Allowed
+HMI-02,PLC-WIND-01,DNP3,OT,OT,0.28,Control ACL,Allowed
+HMI-02,PLC-WIND-02,DNP3,OT,OT,0.28,Control ACL,Allowed
+HIST-01,HIST-REPLICA-01,HTTPS,OT,OT-DMZ,0.22,One-way replication policy,Allowed
+PLC-SUB-01,RTU-DIST-01,DNP3,OT,OT,0.22,Field ACL,Allowed
+PLC-SUB-02,RTU-DIST-01,DNP3,OT,OT,0.22,Field ACL,Allowed
+PLC-WIND-01,SAFETY-PLC-01,Proprietary,OT,Safety,0.08,Safety gateway,Restricted
+PLC-WIND-02,SAFETY-PLC-01,Proprietary,OT,Safety,0.08,Safety gateway,Restricted
+DNS-01,SOC-SIEM-01,Syslog,IT,IT,0.18,Monitoring path,Allowed
+IDP-01,SOC-SIEM-01,Syslog,IT,IT,0.18,Monitoring path,Allowed
+FILE-ENG-01,BACKUP-01,SMB,IT,IT,0.25,Backup service,Allowed
