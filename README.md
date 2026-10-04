@@ -1,4 +1,4 @@
-#SECURITY ANALYTICS
+# SECURITY ANALYTICS
 Coursework and practical exercises completed as part of my Security Analytics module.
 The repository contains practical work exploring security datasets, exploratory analysis, visualisation, classification and analytical techniques applied to cybersecurity problems.
 
